@@ -1,1 +1,14 @@
 venv/
+label_encoders/
+
+# Ignorar archivos compilados de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignorar configuraciones de VS Code
+.vscode/
+
+# Ignorar archivos de log
+*.log
