@@ -155,4 +155,4 @@ if st.sidebar.button("Predecir"):
 st.markdown("<hr style='border:2px solid gray'>", unsafe_allow_html=True)
 
 # Texto al final de la aplicación
-st.markdown("Tarea grupal desarrollada por: **Rubén Galz y Francisco Becker**")
+st.markdown("Tarea grupal desarrollada por: **Rubén Galaz y Francisco Becker**")
