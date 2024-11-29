@@ -78,11 +78,11 @@ st.sidebar.header("Seleccione las Características:")
 input_data = {}
 
 # Diccionarios de mapeo para las opciones
-sex_display_options = ['Femenino', 'Masculino', 'Indeterminado']
+sex_display_options = ['FEMENINO', 'MASCULINO', 'INDETERMINADO']
 sex_actual_values = ['F', 'M', 'E']
 sex_option_map = dict(zip(sex_display_options, sex_actual_values))
 
-nationality_display_options = ['Chileno', 'Extranjero']
+nationality_display_options = ['CHILENO', 'EXTRANJERO']
 nationality_actual_values = ['C', 'E']
 nationality_option_map = dict(zip(nationality_display_options, nationality_actual_values))
 
