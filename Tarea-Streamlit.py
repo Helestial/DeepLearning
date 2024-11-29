@@ -9,8 +9,8 @@ from tensorflow.keras.models import load_model
 import base64
 
 # Rutas
-MODEL_PATH = r"C:\FBECKER\OneDrive\Bases\Tarea DL\RedNeuronal.h5"
-ENCODER_PATH = r"C:\FBECKER\OneDrive\Bases\Tarea DL\label_encoders.pkl"
+MODEL_PATH = r"/workspaces/DeepLearning/RedNeuronal.h5"
+ENCODER_PATH = r"/workspaces/DeepLearning/label_encoders.pkl"
 
 # Columnas esperadas (excluyendo 'NOCOBRO')
 expected_columns = ['COMUNA', 'REGION', 'URBANIDAD', 'FPAGO', 'TIPOBENEFICIO',
