@@ -48,7 +48,7 @@ def get_base64_encoded_image(image_path):
 # Obtener la imagen codificada
 logo_base64 = get_base64_encoded_image('logo.png')
 
-# Mostrar la imagen alineada a la derecha arriba de los títulos
+# Mostrar la imagen alineada a la izquierda arriba de los títulos
 if logo_base64:
     st.markdown(
         f"""
@@ -65,7 +65,7 @@ st.markdown("<hr style='border:2px solid gray'>", unsafe_allow_html=True)
 # Título y descripción de la aplicación
 st.title("Probabilidad para el Cobro de Beneficios: Modelo Predictivo")
 st.markdown("""
-Esta aplicación predice si un beneficiario cobrará sus beneficios basándose en sus características demográficas, Geográficas e Información de Beneficio
+Esta aplicación predice si un beneficiario cobrará sus beneficios basándose en sus características demográficas, geográficas e información del beneficio.
 
 Por favor, seleccione la información solicitada en la barra lateral y presione **Predecir**.
 """)
@@ -74,98 +74,115 @@ Por favor, seleccione la información solicitada en la barra lateral y presione 
 st.markdown("---")
 
 # Input de datos
-st.sidebar.header("Selecciones las Características:")
+st.sidebar.header("Seleccione las Características:")
 input_data = {}
 
-# Organizar los campos de entrada en secciones
-st.sidebar.subheader("Información Demográfica")
-
 # Diccionarios de mapeo para las opciones
-sex_display_options = ['FEMENINO', 'MASCULINO', 'INDETERMINADO']
+sex_display_options = ['Femenino', 'Masculino', 'Indeterminado']
 sex_actual_values = ['F', 'M', 'E']
 sex_option_map = dict(zip(sex_display_options, sex_actual_values))
 
-nationality_display_options = ['CHILENO', 'EXTRANJERO']
+nationality_display_options = ['Chileno', 'Extranjero']
 nationality_actual_values = ['C', 'E']
 nationality_option_map = dict(zip(nationality_display_options, nationality_actual_values))
 
-# Información Demográfica
-Demografica_info_cols = ['SEXO', 'ECIVIL', 'NACIONALIDAD']
-for col in Demografica_info_cols:
-    if col == 'SEXO':
-        input_selection = st.sidebar.selectbox(f"{col}:", sex_display_options)
-        input_data[col] = sex_option_map[input_selection]
-    elif col == 'NACIONALIDAD':
-        input_selection = st.sidebar.selectbox(f"{col}:", nationality_display_options)
-        input_data[col] = nationality_option_map[input_selection]
-    elif col == 'ECIVIL':
-        # Cambiar el nombre mostrado a "ESTADO CIVIL"
-        display_label = 'ESTADO CIVIL'
-        if label_encoders and col in label_encoders:
-            options = label_encoders[col].classes_
-            input_data[col] = st.sidebar.selectbox(f"{display_label}:", options)
-        else:
-            st.sidebar.warning(f"No se encontraron opciones para {col}. Verifica los encoders.")
+# Organizar los campos de entrada en secciones
+with st.sidebar.expander("Información Demográfica", expanded=True):
+    # Usar columnas para los selectores
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        # Selector de SEXO
+        input_selection = st.selectbox("SEXO:", sex_display_options)
+        input_data['SEXO'] = sex_option_map[input_selection]
+    with col2:
+        # Selector de NACIONALIDAD
+        input_selection = st.selectbox("NACIONALIDAD:", nationality_display_options)
+        input_data['NACIONALIDAD'] = nationality_option_map[input_selection]
+    
+    # Selector de ESTADO CIVIL
+    display_label = 'ESTADO CIVIL'
+    if label_encoders and 'ECIVIL' in label_encoders:
+        options = label_encoders['ECIVIL'].classes_
+        input_data['ECIVIL'] = st.selectbox(f"{display_label}:", options)
     else:
-        if label_encoders and col in label_encoders:
-            options = label_encoders[col].classes_
-            input_data[col] = st.sidebar.selectbox(f"{col}:", options)
-        else:
-            st.sidebar.warning(f"No se encontraron opciones para {col}. Verifica los encoders.")
+        st.warning(f"No se encontraron opciones para ECIVIL. Verifica los encoders.")
 
-st.sidebar.subheader("Información Geográfica")
-
-# Información Geográfica
-geo_info_cols = ['REGION', 'COMUNA', 'URBANIDAD']
-for col in geo_info_cols:
-    if label_encoders and col in label_encoders:
-        options = label_encoders[col].classes_
-        input_data[col] = st.sidebar.selectbox(f"{col}:", options)
+with st.sidebar.expander("Información Geográfica", expanded=True):
+    # Usar columnas para los selectores
+    col1, col2 = st.columns(2)
+    
+    for i, col in enumerate(['REGION', 'COMUNA']):
+        with [col1, col2][i%2]:
+            if label_encoders and col in label_encoders:
+                options = label_encoders[col].classes_
+                input_data[col] = st.selectbox(f"{col}:", options)
+            else:
+                st.warning(f"No se encontraron opciones para {col}. Verifica los encoders.")
+    
+    # URBANIDAD
+    if label_encoders and 'URBANIDAD' in label_encoders:
+        options = label_encoders['URBANIDAD'].classes_
+        input_data['URBANIDAD'] = st.selectbox("URBANIDAD:", options)
     else:
-        st.sidebar.warning(f"No se encontraron opciones para {col}. Verifica los encoders.")
+        st.warning("No se encontraron opciones para URBANIDAD. Verifica los encoders.")
 
-st.sidebar.subheader("Información del Beneficio")
-
-# Información del Beneficio
-benefit_info_cols = ['FPAGO', 'TIPOBENEFICIO', 'COBROMARZO']
-for col in benefit_info_cols:
-    if label_encoders and col in label_encoders:
-        options = label_encoders[col].classes_
-        input_data[col] = st.sidebar.selectbox(f"{col}:", options)
+with st.sidebar.expander("Información del Beneficio", expanded=True):
+    # Usar columnas para los selectores
+    col1, col2 = st.columns(2)
+    
+    for i, col in enumerate(['FPAGO', 'TIPOBENEFICIO']):
+        with [col1, col2][i%2]:
+            if label_encoders and col in label_encoders:
+                options = label_encoders[col].classes_
+                input_data[col] = st.selectbox(f"{col}:", options)
+            else:
+                st.warning(f"No se encontraron opciones para {col}. Verifica los encoders.")
+    
+    # COBROMARZO
+    if label_encoders and 'COBROMARZO' in label_encoders:
+        options = label_encoders['COBROMARZO'].classes_
+        input_data['COBROMARZO'] = st.selectbox("COBROMARZO:", options)
     else:
-        st.sidebar.warning(f"No se encontraron opciones para {col}. Verifica los encoders.")
+        st.warning("No se encontraron opciones para COBROMARZO. Verifica los encoders.")
+
+# Crear un placeholder para los resultados
+result_placeholder = st.empty()
 
 # Botón de predicción
 if st.sidebar.button("Predecir"):
     if model and label_encoders:
         try:
-            # Crear DataFrame
-            input_df = pd.DataFrame([input_data])
+            with st.spinner('Realizando predicción...'):
+                # Crear DataFrame
+                input_df = pd.DataFrame([input_data])
 
-            # Transformar datos con los encoders
-            for col in expected_columns:
-                if col in label_encoders:
-                    input_df[col] = label_encoders[col].transform(input_df[col])
+                # Transformar datos con los encoders
+                for col in expected_columns:
+                    if col in label_encoders:
+                        input_df[col] = label_encoders[col].transform(input_df[col])
+                    else:
+                        # Convertir a numérico si hubiera columnas adicionales
+                        input_df[col] = pd.to_numeric(input_df[col], errors='coerce')
+
+                # Verificar si hay valores nulos después de la conversión
+                if input_df.isnull().any().any():
+                    st.error("Por favor, asegúrese de que todos los campos estén correctamente llenos.")
+                    st.write("Datos ingresados:")
+                    st.write(input_df)
                 else:
-                    # Convertir a numérico si hubiera columnas adicionales
-                    input_df[col] = pd.to_numeric(input_df[col], errors='coerce')
+                    # Asegurar que el orden de las columnas coincide con el esperado por el modelo
+                    input_df = input_df[expected_columns]
+                    # Convertir los tipos de datos a float32
+                    input_df = input_df.astype('float32')
+                    # Hacer predicción
+                    prediction_prob = model.predict(input_df)
+                    prediction = (prediction_prob > 0.5).astype(int)
+                    resultado = "NO COBRARÁ" if prediction[0][0] == 1 else "SÍ COBRARÁ"
 
-            # Verificar si hay valores nulos después de la conversión
-            if input_df.isnull().any().any():
-                st.error("Por favor, asegúrese de que todos los campos estén correctamente llenos.")
-                st.write("Datos ingresados:")
-                st.write(input_df)
-            else:
-                # Asegurar que el orden de las columnas coincide con el esperado por el modelo
-                input_df = input_df[expected_columns]
-                # Convertir los tipos de datos a float32
-                input_df = input_df.astype('float32')
-                # Hacer predicción
-                prediction_prob = model.predict(input_df)
-                prediction = (prediction_prob > 0.5).astype(int)
-                resultado = "NO COBRARÁ" if prediction[0][0] == 1 else "SÍ COBRARÁ"
-
-                # Mostrar el resultado con estilo
+            # Mostrar el resultado en el placeholder
+            with result_placeholder:
+                st.success('Predicción completada con éxito.')
                 st.markdown(f"## Resultado de la Predicción:")
                 st.markdown(f"### El beneficiario **{resultado}** su beneficio.")
                 st.markdown(f"**Probabilidad estimada de no cobro:** {prediction_prob[0][0]:.2%}")
@@ -174,6 +191,11 @@ if st.sidebar.button("Predecir"):
             st.error(f"Error durante la predicción: {str(e)}")
     else:
         st.error("El modelo no está cargado correctamente.")
+else:
+    # Mostrar mensaje inicial en el placeholder
+    with result_placeholder:
+        st.markdown("## Resultado de la Predicción:")
+        st.info("Por favor, ingrese los datos y presione **Predecir** para ver el resultado.")
 
 # Línea horizontal gruesa
 st.markdown("<hr style='border:2px solid gray'>", unsafe_allow_html=True)
