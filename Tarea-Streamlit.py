@@ -78,11 +78,11 @@ st.sidebar.header("Ingrese Características de beneficiario:")
 input_data = {}
 
 # Organizar los campos de entrada en secciones
-st.sidebar.subheader("Información Personal")
+st.sidebar.subheader("Información Demografica")
 
-# Información Personal
-personal_info_cols = ['SEXO', 'ECIVIL', 'NACIONALIDAD']
-for col in personal_info_cols:
+# Información Demografica
+Demografica_info_cols = ['SEXO', 'ECIVIL', 'NACIONALIDAD']
+for col in Demografica_info_cols:
     if label_encoders and col in label_encoders:
         options = label_encoders[col].classes_
         input_data[col] = st.sidebar.selectbox(f"{col}:", options)
