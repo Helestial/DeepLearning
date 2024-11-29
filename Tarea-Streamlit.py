@@ -63,31 +63,55 @@ if logo_base64:
 st.markdown("<hr style='border:2px solid gray'>", unsafe_allow_html=True)
 
 # Título y descripción de la aplicación
-st.title("Predicción de No Cobro de Beneficios")
+st.title("Probabilidad para el Cobro de Beneficios: Modelo Predictivo")
 st.markdown("""
-Esta aplicación predice si un beneficiario cobrará sus beneficios basándose en sus características demográficas y otros factores.
+Esta aplicación predice si un beneficiario cobrará sus beneficios basándose en sus características demográficas, Geográficas e Información de Beneficio
 
-Por favor, ingrese la información solicitada en la barra lateral y presione **Predecir**.
+Por favor, seleccione la información solicitada en la barra lateral y presione **Predecir**.
 """)
 
 # Línea horizontal
 st.markdown("---")
 
 # Input de datos
-st.sidebar.header("Ingrese Características de beneficiario:")
+st.sidebar.header("Selecciones las Características:")
 input_data = {}
 
 # Organizar los campos de entrada en secciones
-st.sidebar.subheader("Información Demografica")
+st.sidebar.subheader("Información Demográfica")
 
-# Información Demografica
+# Diccionarios de mapeo para las opciones
+sex_display_options = ['FEMENINO', 'MASCULINO', 'INDETERMINADO']
+sex_actual_values = ['F', 'M', 'E']
+sex_option_map = dict(zip(sex_display_options, sex_actual_values))
+
+nationality_display_options = ['CHILENO', 'EXTRANJERO']
+nationality_actual_values = ['C', 'E']
+nationality_option_map = dict(zip(nationality_display_options, nationality_actual_values))
+
+# Información Demográfica
 Demografica_info_cols = ['SEXO', 'ECIVIL', 'NACIONALIDAD']
 for col in Demografica_info_cols:
-    if label_encoders and col in label_encoders:
-        options = label_encoders[col].classes_
-        input_data[col] = st.sidebar.selectbox(f"{col}:", options)
+    if col == 'SEXO':
+        input_selection = st.sidebar.selectbox(f"{col}:", sex_display_options)
+        input_data[col] = sex_option_map[input_selection]
+    elif col == 'NACIONALIDAD':
+        input_selection = st.sidebar.selectbox(f"{col}:", nationality_display_options)
+        input_data[col] = nationality_option_map[input_selection]
+    elif col == 'ECIVIL':
+        # Cambiar el nombre mostrado a "ESTADO CIVIL"
+        display_label = 'ESTADO CIVIL'
+        if label_encoders and col in label_encoders:
+            options = label_encoders[col].classes_
+            input_data[col] = st.sidebar.selectbox(f"{display_label}:", options)
+        else:
+            st.sidebar.warning(f"No se encontraron opciones para {col}. Verifica los encoders.")
     else:
-        st.sidebar.warning(f"No se encontraron opciones para {col}. Verifica los encoders.")
+        if label_encoders and col in label_encoders:
+            options = label_encoders[col].classes_
+            input_data[col] = st.sidebar.selectbox(f"{col}:", options)
+        else:
+            st.sidebar.warning(f"No se encontraron opciones para {col}. Verifica los encoders.")
 
 st.sidebar.subheader("Información Geográfica")
 
