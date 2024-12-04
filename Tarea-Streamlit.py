@@ -203,34 +203,46 @@ st.markdown("<hr style='border:2px solid gray'>", unsafe_allow_html=True)
 # Texto al final de la aplicación
 st.markdown("Tarea grupal desarrollada por: **Rubén Galaz y Francisco Becker**")
 
-# Cargar el dataframe
-# Reemplaza esto con tu propio código para cargar tu dataframe
-# Por ejemplo: df = pd.read_csv('tu_archivo.csv')
-# Para este ejemplo, crearé un dataframe de muestra
-data = {
-    'COMUNA': ['Santiago', 'Valparaíso', 'Concepción', 'Santiago', 'Valparaíso', 'Concepción', 'Santiago'],
-    'REGION': ['Metropolitana', 'Valparaíso', 'Biobío', 'Metropolitana', 'Valparaíso', 'Biobío', 'Metropolitana'],
-    'URBANIDAD': ['Urbano', 'Urbano', 'Urbano', 'Rural', 'Rural', 'Urbano', 'Urbano'],
-    'FPAGO': ['Efectivo', 'Tarjeta', 'Efectivo', 'Cheque', 'Efectivo', 'Tarjeta', 'Efectivo'],
-    'TIPOBENEFICIO': ['Tipo A', 'Tipo B', 'Tipo A', 'Tipo C', 'Tipo B', 'Tipo A', 'Tipo C'],
-    'COBROMARZO': [1, 0, 1, 1, 0, 1, 1],
-    'SEXO': ['Femenino', 'Masculino', 'Femenino', 'Femenino', 'Masculino', 'Femenino', 'Masculino'],
-    'ECIVIL': ['Soltero', 'Casado', 'Soltero', 'Casado', 'Soltero', 'Casado', 'Soltero'],
-    'NACIONALIDAD': ['Chilena', 'Chilena', 'Extranjera', 'Chilena', 'Extranjera', 'Chilena', 'Chilena'],
-    'NOCOBRO': [0, 1, 0, 0, 1, 0, 0]
-}
 
-df = pd.DataFrame(data)
+
+import streamlit as st
+import pandas as pd
+import joblib  # Asegúrate de tener joblib instalado
+
+# Cargar el dataframe desde 'datos.csv'
+df = pd.read_csv('datos.csv')
+
+# Cargar los label encoders desde 'label_encoders.pkl'
+label_encoders = joblib.load('label_encoders.pkl')
+
+# Lista de columnas que fueron label encodificadas
+columnas_codificadas = ['COMUNA', 'REGION', 'URBANIDAD', 'FPAGO', 'TIPOBENEFICIO', 'SEXO', 'ECIVIL', 'NACIONALIDAD']
+
+# Verificar que los label encoders correspondan a las columnas codificadas
+for col in columnas_codificadas:
+    if col not in label_encoders:
+        st.error(f"No se encontró un label encoder para la columna '{col}'.")
+        st.stop()
+
+# Aplicar inverse_transform para recuperar las categorías originales
+for col in columnas_codificadas:
+    le = label_encoders[col]
+    # Asegurarse de que la columna sea de tipo entero
+    df[col] = df[col].astype(int)
+    df[col + '_original'] = le.inverse_transform(df[col])
+
+# Añadir las columnas no codificadas a la lista de columnas disponibles
+columnas_no_codificadas = ['COBROMARZO', 'NOCOBRO']
+
+# Lista de columnas disponibles para selección (usando las columnas originales)
+columnas = [col + '_original' for col in columnas_codificadas] + columnas_no_codificadas
 
 # Título de la aplicación
 st.title('Estadísticas del Dataframe')
 
-# Mostrar el dataframe
+# Mostrar una vista previa del dataframe
 st.write("Vista previa del dataframe:")
-st.dataframe(df)
-
-# Lista de columnas disponibles para selección
-columnas = df.columns.tolist()
+st.dataframe(df.head())
 
 # Selector de campos
 st.sidebar.header('Seleccione los campos para analizar')
@@ -246,7 +258,7 @@ def mostrar_estadisticas(campo1, campo2=None):
         st.write(conteo)
     elif campo1 and campo2:
         st.subheader(f'Estadísticas para {campo1} y {campo2}')
-        conteo_doble = df.groupby([campo1, campo2]).size().unstack()
+        conteo_doble = df.groupby([campo1, campo_dos]).size().unstack(fill_value=0)
         st.write(conteo_doble)
         st.bar_chart(conteo_doble)
     else:
@@ -254,22 +266,3 @@ def mostrar_estadisticas(campo1, campo2=None):
 
 # Llamar a la función con los campos seleccionados
 mostrar_estadisticas(campo_uno, campo_dos)
-
-# Ejemplos específicos para mostrar estadísticas adicionales
-if 'SEXO' in [campo_uno, campo_dos]:
-    st.subheader('Cantidad por Sexo')
-    sexo_conteo = df['SEXO'].value_counts()
-    st.write(sexo_conteo)
-    st.bar_chart(sexo_conteo)
-
-if 'REGION' in [campo_uno, campo_dos]:
-    st.subheader('Cantidad por Región')
-    region_conteo = df['REGION'].value_counts()
-    st.write(region_conteo)
-    st.bar_chart(region_conteo)
-
-if 'FPAGO' in [campo_uno, campo_dos]:
-    st.subheader('Cantidad por Forma de Pago')
-    fpago_conteo = df['FPAGO'].value_counts()
-    st.write(fpago_conteo)
-    st.bar_chart(fpago_conteo)
