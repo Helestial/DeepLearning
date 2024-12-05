@@ -12,6 +12,11 @@ import os
 # Rutas
 MODEL_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "RedNeuronal.h5")
 ENCODER_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "label_encoders.pkl")
+GEO_DATA_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Reg_Com_Urb.csv")
+
+# Columnas esperadas (excluyendo 'NOCOBRO')
+expected_columns = ['COMUNA', 'REGION', 'URBANIDAD', 'FPAGO', 'TIPOBENEFICIO',
+                    'COBROMARZO', 'SEXO', 'ECIVIL', 'NACIONALIDAD']
 
 # Columnas esperadas (excluyendo 'NOCOBRO')
 expected_columns = ['COMUNA', 'REGION', 'URBANIDAD', 'FPAGO', 'TIPOBENEFICIO',
@@ -34,6 +39,18 @@ def load_resources():
         return None, None
 
 model, label_encoders = load_resources()
+
+# Cargar datos geográficos
+@st.cache_data
+def load_geo_data():
+    try:
+        geo_data = pd.read_csv(GEO_DATA_PATH, sep=';', encoding='latin1')
+        return geo_data
+    except Exception as e:
+        st.error(f"Error al cargar 'Reg_Com_Urb.csv': {str(e)}")
+        return pd.DataFrame()
+
+geo_data = load_geo_data()
 
 # Función para obtener la imagen codificada en base64
 def get_base64_encoded_image(image_path):
@@ -109,23 +126,27 @@ with st.sidebar.expander("Información Demográfica", expanded=True):
         st.warning(f"No se encontraron opciones para ECIVIL. Verifica los encoders.")
 
 with st.sidebar.expander("Información Geográfica", expanded=True):
-    # Usar columnas para los selectores
-    col1, col2 = st.columns(2)
-    
-    for i, col in enumerate(['REGION', 'COMUNA']):
-        with [col1, col2][i%2]:
-            if label_encoders and col in label_encoders:
-                options = label_encoders[col].classes_
-                input_data[col] = st.selectbox(f"{col}:", options)
-            else:
-                st.warning(f"No se encontraron opciones para {col}. Verifica los encoders.")
-    
-    # URBANIDAD
-    if label_encoders and 'URBANIDAD' in label_encoders:
-        options = label_encoders['URBANIDAD'].classes_
-        input_data['URBANIDAD'] = st.selectbox("URBANIDAD:", options)
+    if not geo_data.empty:
+        # Obtener lista de regiones únicas
+        regiones = sorted(geo_data['REGION'].unique())
+        # Selector de REGION
+        selected_region = st.selectbox("REGION:", regiones)
+        # Filtrar comunas basadas en la región seleccionada
+        comunas_filtradas = geo_data[geo_data['REGION'] == selected_region]['COMUNA'].unique()
+        comunas_filtradas = sorted(comunas_filtradas)
+        # Selector de COMUNA
+        selected_comuna = st.selectbox("COMUNA:", comunas_filtradas)
+        # Obtener URBANIDAD basada en la comuna seleccionada
+        urbanidad = geo_data[(geo_data['REGION'] == selected_region) & (geo_data['COMUNA'] == selected_comuna)]['URBANIDAD'].iloc[0]
+        # Mostrar URBANIDAD (campo deshabilitado)
+        st.text_input("URBANIDAD:", urbanidad, disabled=True)
+        
+        # Almacenar en input_data
+        input_data['REGION'] = selected_region
+        input_data['COMUNA'] = selected_comuna
+        input_data['URBANIDAD'] = urbanidad
     else:
-        st.warning("No se encontraron opciones para URBANIDAD. Verifica los encoders.")
+        st.error("No se pudieron cargar los datos geográficos.")
 
 with st.sidebar.expander("Información del Beneficio", expanded=True):
     # Usar columnas para los selectores
@@ -201,13 +222,8 @@ else:
 st.markdown("<hr style='border:2px solid gray'>", unsafe_allow_html=True)
 
 # Texto al final de la aplicación
-st.markdown("Tarea grupal desarrollada por: **Rubén Galaz y Francisco Becker**")
+st.markdown("Tarea grupal desarrollada por: **Rubén Galaz y Francisco Becker** con apoyo de ChatGPT de OpenAI")
 
-
-
-import streamlit as st
-import pandas as pd
-import joblib  # Asegúrate de tener joblib instalado
 
 # Cargar el dataframe desde 'datos.csv'
 df = pd.read_csv('datos.csv')
